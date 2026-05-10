@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cambridge Checkpoint Quiz — Yasith's Study Corner</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f8f7ff;--surface:#ffffff;--surface2:#f1eff8;
+  --primary:#5c4fcf;--primary-dark:#3d33a8;--primary-light:#e8e6ff;
+  --success:#1a7f5e;--success-bg:#e6f7f1;
+  --warn:#b85c00;--warn-bg:#fff3e0;
+  --danger:#c0392b;--danger-bg:#fdecea;
+  --text:#1a1a2e;--text2:#555577;--text3:#8888aa;
+  --border:#ddddf0;--radius:12px;--shadow:0 2px 16px rgba(92,79,207,0.10);
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* WELCOME SCREEN */
+#welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;text-align:center;background:linear-gradient(135deg,#1a1a2e 0%,#2d2b6b 50%,#1a1a2e 100%)}
+#welcome h1{font-size:clamp(2rem,5vw,3.5rem);color:#fff;font-weight:700;margin-bottom:.5rem;line-height:1.2}
+#welcome .subtitle{color:#b8b4e8;font-size:1.1rem;margin-bottom:2.5rem;max-width:500px}
+.badge-row{display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center;margin-bottom:2.5rem}
+.badge{background:rgba(255,255,255,0.12);color:#e0dcff;border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:.35rem .9rem;font-size:.85rem}
+.subject-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.25rem;max-width:700px;width:100%;margin-bottom:2rem}
+.subject-card{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:var(--radius);padding:1.5rem 1.25rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.subject-card:hover{background:rgba(255,255,255,0.18);transform:translateY(-3px)}
+.subject-card.active{background:rgba(139,120,255,0.35);border-color:#a99eff}
+.subject-card .card-icon{font-size:2.5rem;margin-bottom:.75rem}
+.subject-card h3{color:#fff;font-size:1.05rem;margin-bottom:.25rem}
+.subject-card p{color:#b8b4e8;font-size:.82rem}
+.subject-card .check{position:absolute;top:12px;right:12px;width:22px;height:22px;background:#6c5dd3;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.75rem;opacity:0;transition:opacity .2s}
+.subject-card.active .check{opacity:1}
+.start-btn{background:linear-gradient(135deg,#6c5dd3,#9b59b6);color:#fff;border:none;border-radius:30px;padding:1rem 3rem;font-size:1.15rem;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(108,93,211,0.5)}
+.start-btn:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(108,93,211,0.7)}
+.start-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* EXAM SCREEN */
+#exam{display:none;max-width:900px;margin:0 auto;padding:1.5rem}
+.exam-header{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:1rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow)}
+.exam-title{font-size:1.05rem;font-weight:600;color:var(--primary)}
+.exam-meta{display:flex;gap:1.5rem;align-items:center}
+.meta-item{font-size:.85rem;color:var(--text2)}
+.meta-item strong{color:var(--text)}
+.progress-bar{background:var(--surface2);border-radius:var(--radius);height:6px;overflow:hidden;margin-bottom:1.25rem}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),#9b59b6);border-radius:var(--radius);transition:width .4s ease}
+.section-header{background:var(--primary);color:#fff;border-radius:var(--radius);padding:.7rem 1.2rem;margin-bottom:1rem;font-size:.9rem;font-weight:600;display:flex;align-items:center;gap:.5rem}
+.question-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.25rem;box-shadow:var(--shadow);transition:border-color .2s}
+.question-card.answered{border-color:#9b8fff}
+.q-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem;gap:1rem}
+.q-num{font-size:.8rem;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:.05em}
+.marks-badge{background:var(--primary-light);color:var(--primary);border-radius:20px;padding:.2rem .65rem;font-size:.78rem;font-weight:600;white-space:nowrap}
+.q-text{font-size:.97rem;line-height:1.65;color:var(--text);margin-bottom:1rem}
+.q-text strong{color:var(--primary)}
+.options{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem}
+.option-btn{background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:.65rem 1rem;text-align:left;cursor:pointer;font-size:.92rem;transition:all .18s;color:var(--text);display:flex;align-items:center;gap:.75rem}
+.option-btn:hover{border-color:var(--primary);background:var(--primary-light)}
+.option-btn.selected{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark);font-weight:500}
+.option-btn.correct{border-color:var(--success);background:var(--success-bg);color:var(--success)}
+.option-btn.wrong{border-color:var(--danger);background:var(--danger-bg);color:var(--danger)}
+.option-btn.reveal{border-color:var(--success);background:var(--success-bg);color:var(--success)}
+.option-letter{width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0}
+.option-btn.selected .option-letter{background:var(--primary);color:#fff}
+.option-btn.correct .option-letter{background:var(--success);color:#fff}
+.option-btn.wrong .option-letter{background:var(--danger);color:#fff}
+.answer-input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:.75rem 1rem;font-size:.92rem;font-family:inherit;resize:vertical;min-height:80px;transition:border-color .2s;background:var(--surface)}
+.answer-input:focus{outline:none;border-color:var(--primary)}
+.answer-input:disabled{background:var(--surface2);color:var(--text2)}
+.check-btn{background:var(--primary);color:#fff;border:none;border-radius:10px;padding:.6rem 1.4rem;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .18s;margin-top:.5rem}
+.check-btn:hover{background:var(--primary-dark)}
+.check-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Feedback */
+.feedback{border-radius:10px;padding:.9rem 1.1rem;margin-top:.9rem;font-size:.88rem;line-height:1.6;display:none}
+.feedback.show{display:block}
+.feedback.correct-fb{background:var(--success-bg);border:1px solid #a8dfd0;color:#0e5c42}
+.feedback.wrong-fb{background:var(--warn-bg);border:1px solid #ffc66d;color:#7a3c00}
+.feedback.perfect-fb{background:#f0ebff;border:1px solid #c0b0ff;color:#3d1f8a}
+.fb-score{font-weight:700;font-size:1rem;margin-bottom:.3rem}
+.fb-explanation{color:inherit;opacity:.9}
+
+/* Score chips in feedback */
+.score-chip{display:inline-flex;align-items:center;gap:.3rem;background:rgba(0,0,0,.08);border-radius:20px;padding:.15rem .6rem;font-size:.8rem;font-weight:600;margin:0 .2rem}
+
+/* Submit bar */
+.submit-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-top:1.5rem;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow)}
+.submit-info{font-size:.88rem;color:var(--text2)}
+.submit-btn{background:linear-gradient(135deg,#6c5dd3,#9b59b6);color:#fff;border:none;border-radius:30px;padding:.8rem 2.5rem;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s}
+.submit-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(108,93,211,.5)}
+
+/* RESULTS */
+#results{display:none;max-width:850px;margin:0 auto;padding:1.5rem}
+.results-hero{background:linear-gradient(135deg,#1a1a2e,#2d2b6b);border-radius:var(--radius);padding:2.5rem;text-align:center;color:#fff;margin-bottom:1.5rem}
+.results-hero h2{font-size:2.2rem;margin-bottom:.5rem}
+.results-hero .grade{font-size:4rem;font-weight:800;background:linear-gradient(135deg,#a99eff,#f5b7e6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.results-hero .grade-label{color:#b8b4e8;margin-top:.5rem}
+.score-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin:1.5rem 0 0}
+.score-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:1rem;text-align:center}
+.score-card .sc-val{font-size:1.8rem;font-weight:700;color:#fff}
+.score-card .sc-label{font-size:.78rem;color:#b8b4e8;margin-top:.2rem}
+.breakdown-title{font-size:1.1rem;font-weight:600;margin-bottom:1rem}
+.breakdown-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem;box-shadow:var(--shadow)}
+.breakdown-section h4{font-size:.85rem;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.06em;margin-bottom.75rem;margin-bottom:.6rem}
+.breakdown-q{padding:.6rem 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;font-size:.88rem}
+.breakdown-q:last-child{border-bottom:none}
+.bq-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.bq-dot.full{background:var(--success)}
+.bq-dot.partial{background:var(--warn)}
+.bq-dot.zero{background:var(--danger)}
+.bq-text{flex:1;color:var(--text2)}
+.bq-pts{font-weight:600;white-space:nowrap}
+.bq-pts.full{color:var(--success)}
+.bq-pts.partial{color:var(--warn)}
+.bq-pts.zero{color:var(--danger)}
+.retry-btn{background:linear-gradient(135deg,#6c5dd3,#9b59b6);color:#fff;border:none;border-radius:30px;padding:.8rem 2.5rem;font-size:1rem;font-weight:700;cursor:pointer;display:block;margin:1.5rem auto 0;transition:all .2s}
+.retry-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(108,93,211,.5)}
+
+/* AI loading */
+.ai-thinking{display:flex;align-items:center;gap:.6rem;color:var(--primary);font-size:.85rem;padding:.5rem 0}
+.dots span{display:inline-block;animation:bounce .9s infinite;width:5px;height:5px;border-radius:50%;background:var(--primary);margin:0 2px}
+.dots span:nth-child(2){animation-delay:.18s}
+.dots span:nth-child(3){animation-delay:.36s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+
+/* Responsive */
+@media(max-width:600px){
+  .exam-header{flex-direction:column;align-items:flex-start;gap:.5rem}
+  .submit-bar{flex-direction:column;gap:1rem;align-items:stretch}
+  .submit-btn{text-align:center}
+}
+</style>
+</head>
+<body>
+
+<!-- WELCOME SCREEN -->
+<div id="welcome">
+  <h1>🎓 Checkpoint Quiz</h1>
+  <p class="subtitle">Real exam questions. Instant AI marking. Compete with your friends and crush those Checkpoint papers! 🔥</p>
+  <div class="badge-row">
+    <span class="badge">📚 Cambridge 0862 & 0893</span>
+    <span class="badge">⚡ Stages 7–9</span>
+    <span class="badge">🤖 AI marking</span>
+    <span class="badge">🔀 Randomised every time</span>
+  </div>
+  <div class="subject-cards">
+    <div class="subject-card" id="card-math" onclick="toggleSubject('math')">
+      <span class="check">✓</span>
+      <div class="card-icon">📐</div>
+      <h3>Mathematics</h3>
+      <p>Number, Algebra, Geometry, Stats & Probability</p>
+    </div>
+    <div class="subject-card" id="card-science" onclick="toggleSubject('science')">
+      <span class="check">✓</span>
+      <div class="card-icon">🔬</div>
+      <h3>Science</h3>
+      <p>Biology, Chemistry, Physics, Earth & Space</p>
+    </div>
+  </div>
+  <button class="start-btn" id="startBtn" onclick="startExam()" disabled>Select a subject to begin</button>
+</div>
+
+<!-- EXAM SCREEN -->
+<div id="exam">
+  <div class="exam-header">
+    <div>
+      <div class="exam-title" id="examTitle">Cambridge Checkpoint</div>
+      <div style="font-size:.8rem;color:var(--text3);margin-top:.2rem">Answer all questions. Show your working where asked.</div>
+    </div>
+    <div class="exam-meta">
+      <div class="meta-item">Questions: <strong id="qCount">—</strong></div>
+      <div class="meta-item">Total marks: <strong id="totalMarks">—</strong></div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div id="questionsContainer"></div>
+  <div class="submit-bar">
+    <div class="submit-info" id="submitInfo">Answer all questions to submit</div>
+    <button class="submit-btn" id="submitBtn" onclick="submitExam()">Submit Paper →</button>
+  </div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div id="results">
+  <div class="results-hero">
+    <h2 id="resultsTitle">Paper complete! 🎉</h2>
+    <div class="grade" id="gradeDisplay">—</div>
+    <div class="grade-label" id="gradeLabel">—</div>
+    <div class="score-grid">
+      <div class="score-card"><div class="sc-val" id="r-score">—</div><div class="sc-label">Your score</div></div>
+      <div class="score-card"><div class="sc-val" id="r-total">—</div><div class="sc-label">Total marks</div></div>
+      <div class="score-card"><div class="sc-val" id="r-pct">—</div><div class="sc-label">Percentage</div></div>
+      <div class="score-card"><div class="sc-val" id="r-correct">—</div><div class="sc-label">Full marks</div></div>
+    </div>
+  </div>
+  <div class="breakdown-title">Question breakdown</div>
+  <div id="breakdownContainer"></div>
+  <button class="retry-btn" onclick="restartQuiz()">🔁 Try again (new shuffle)</button>
+</div>
+
+<script>
+// ===================== QUESTION BANK =====================
+const MATH_QUESTIONS = [
+  // Number
+  {section:"Number",q:"Calculate: 4 + (3 − 7)² ÷ 8 × 2",type:"short",marks:2,answer:"8",hint:"Use BIDMAS: brackets first, then indices, then ÷ and × left to right, then +",keywords:["8"]},
+  {section:"Number",q:"A jacket costs $120. It is reduced by <strong>35%</strong> in a sale. What is the sale price?",type:"short",marks:2,answer:"$78",hint:"Multiplier method: 120 × 0.65 = $78",keywords:["78"]},
+  {section:"Number",q:"Share $350 in the ratio <strong>2 : 3 : 5</strong>. Find all three shares.",type:"short",marks:3,answer:"$70, $105, $175",hint:"Total parts = 10. One part = $35. Multiply each ratio part by $35.",keywords:["70","105","175"]},
+  {section:"Number",q:"Write <strong>0.000056</strong> in standard form.",type:"mcq",marks:1,answer:"5.6 × 10⁻⁵",options:["5.6 × 10⁻⁵","5.6 × 10⁻⁶","56 × 10⁻⁶","5.6 × 10⁵"]},
+  {section:"Number",q:"Find the <strong>HCF and LCM</strong> of 48 and 72.",type:"short",marks:3,answer:"HCF = 24, LCM = 144",hint:"48 = 2⁴×3, 72 = 2³×3². HCF: lowest powers of shared primes. LCM: highest powers of all primes.",keywords:["24","144"]},
+  {section:"Number",q:"A price increased from $80 to $94. What is the percentage increase?",type:"short",marks:2,answer:"17.5%",hint:"Change = 14. (14 ÷ 80) × 100 = 17.5%",keywords:["17.5"]},
+  {section:"Number",q:"Calculate: (3 × 10⁴) × (2 × 10³). Give your answer in standard form.",type:"mcq",marks:1,answer:"6 × 10⁷",options:["6 × 10⁷","6 × 10¹²","6 × 10¹","60 × 10⁶"]},
+  {section:"Number",q:"Work out ⅔ ÷ ⁴⁄₅. Give your answer as a fraction in its simplest form.",type:"mcq",marks:2,answer:"5/6",options:["5/6","8/15","⁵⁄₆","6/5"]},
+  {section:"Number",q:"A phone costs $450. The price increases by 12%. What is the new price?",type:"short",marks:2,answer:"$504",hint:"Multiplier: 450 × 1.12 = $504",keywords:["504"]},
+  {section:"Number",q:"Express 360 as a product of its prime factors.",type:"short",marks:2,answer:"2³ × 3² × 5",hint:"Divide by primes: 360 = 2×2×2×3×3×5",keywords:["2³","3²","5","8","9"]},
+  // Algebra
+  {section:"Algebra",q:"Expand and simplify: <strong>(3x − 2)(x + 5)</strong>",type:"short",marks:2,answer:"3x² + 13x − 10",hint:"FOIL: 3x²+15x−2x−10 = 3x²+13x−10",keywords:["3x²","13x","10","13x − 10"]},
+  {section:"Algebra",q:"Find the nth term of the sequence: <strong>7, 3, −1, −5, …</strong>",type:"short",marks:2,answer:"−4n + 11",hint:"d = −4. When n=1: −4+c=7, so c=11.",keywords:["−4n","11","−4n + 11","-4n+11"]},
+  {section:"Algebra",q:"Solve: <strong>5(x − 3) = 2x + 6</strong>",type:"short",marks:2,answer:"x = 7",hint:"5x−15 = 2x+6 → 3x = 21 → x = 7",keywords:["7"]},
+  {section:"Algebra",q:"A line passes through (0, 4) with gradient −3. Which equation is correct?",type:"mcq",marks:1,answer:"y = −3x + 4",options:["y = −3x + 4","y = 3x + 4","y = −3x − 4","y = 4x − 3"]},
+  {section:"Algebra",q:"Solve simultaneously: <strong>3x + 2y = 14</strong> and <strong>x − y = 1</strong>",type:"short",marks:3,answer:"x = 16/5, y = 11/5",hint:"From 2nd equation: x = y+1. Substitute into first. Or multiply x−y=1 by 2 and add.",keywords:["16/5","11/5","3.2","2.2"]},
+  {section:"Algebra",q:"Factorise completely: <strong>6x² + 9x</strong>",type:"mcq",marks:2,answer:"3x(2x + 3)",options:["3x(2x + 3)","3(2x² + 3x)","x(6x + 9)","6x(x + 1.5)"]},
+  {section:"Algebra",q:"The perimeter of a rectangle is 34 cm. Its length is (2x+3) cm and width is (x−1) cm. Find x.",type:"short",marks:3,answer:"x = 5",hint:"2(length + width) = 34. So 2((2x+3)+(x−1)) = 34 → 2(3x+2) = 34 → 6x+4=34",keywords:["5"]},
+  {section:"Algebra",q:"What is the gradient of a line perpendicular to y = 2x + 7?",type:"mcq",marks:1,answer:"−½",options:["−½","2","½","−2"]},
+  // Geometry
+  {section:"Geometry & Measure",q:"A regular hexagon has a perimeter of 42 cm. Find the size of each interior angle.",type:"mcq",marks:2,answer:"120°",options:["120°","108°","135°","60°"]},
+  {section:"Geometry & Measure",q:"Find the area of a circle with diameter 14 cm. Give your answer in terms of π.",type:"short",marks:2,answer:"49π cm²",hint:"r = 7. Area = π × 7² = 49π",keywords:["49π","49"]},
+  {section:"Geometry & Measure",q:"A right-angled triangle has legs of 9 cm and 12 cm. Find the length of the hypotenuse.",type:"short",marks:2,answer:"15 cm",hint:"c² = 9²+12² = 81+144 = 225. c = 15. This is a 3-4-5 triple × 3!",keywords:["15"]},
+  {section:"Geometry & Measure",q:"In a right-angled triangle, the adjacent side is 10 cm and the hypotenuse is 13 cm. Find the angle between them (to 1 d.p.).",type:"short",marks:2,answer:"39.7°",hint:"cos θ = 10/13 → θ = cos⁻¹(10/13)",keywords:["39.7","39.6"]},
+  {section:"Geometry & Measure",q:"A cylinder has radius 4 cm and height 10 cm. Find its volume to 3 significant figures.",type:"short",marks:2,answer:"503 cm³",hint:"V = πr²h = π × 16 × 10 = 160π ≈ 503",keywords:["503","502","504"]},
+  {section:"Geometry & Measure",q:"A shape is enlarged by scale factor 3. What happens to its area?",type:"mcq",marks:1,answer:"Multiplied by 9",options:["Multiplied by 9","Multiplied by 3","Multiplied by 27","Multiplied by 6"]},
+  {section:"Geometry & Measure",q:"Calculate the area of a trapezium with parallel sides 8 cm and 14 cm and perpendicular height 6 cm.",type:"short",marks:2,answer:"66 cm²",hint:"A = ½(a+b)h = ½(8+14)×6 = 66",keywords:["66"]},
+  // Statistics
+  {section:"Statistics & Probability",q:"The scores of 7 students are: 14, 9, 18, 11, 14, 20, 7. Find the <strong>mean, median</strong> and <strong>range</strong>.",type:"short",marks:3,answer:"Mean ≈ 13.3, Median = 14, Range = 13",hint:"Ordered: 7,9,11,14,14,18,20. Mean=93/7≈13.3. Median=14 (4th). Range=20−7=13.",keywords:["13.3","13","14"]},
+  {section:"Statistics & Probability",q:"A bag contains 4 green, 3 yellow, and 5 red counters. One is picked at random. Find P(not red).",type:"mcq",marks:1,answer:"7/12",options:["7/12","5/12","4/12","1/2"]},
+  {section:"Statistics & Probability",q:"Two fair coins are flipped. Find P(exactly one head).",type:"mcq",marks:2,answer:"1/2",options:["1/2","1/4","3/4","2/3"]},
+  {section:"Statistics & Probability",q:"A box has 4 black and 6 white socks. Two socks are taken <strong>without replacement</strong>. Find the probability both socks are the same colour.",type:"short",marks:4,answer:"7/15",hint:"P(BB)=4/10×3/9=12/90. P(WW)=6/10×5/9=30/90. Add them: 42/90=7/15.",keywords:["7/15","0.467","0.47"]},
+  {section:"Statistics & Probability",q:"A grouped frequency table shows test scores: 0–20 (f=4), 20–40 (f=11), 40–60 (f=9), 60–80 (f=6). Find the estimated mean.",type:"short",marks:3,answer:"41.3",hint:"Midpoints: 10,30,50,70. Σ(fx)=40+330+450+420=1240. Σf=30. Mean=1240÷30",keywords:["41.3","41"]},
+];
+
+const SCIENCE_QUESTIONS = [
+  // Biology
+  {section:"Biology",q:"Which organelle is the site of <strong>aerobic respiration</strong> in a cell?",type:"mcq",marks:1,answer:"Mitochondria",options:["Mitochondria","Chloroplasts","Nucleus","Ribosomes"]},
+  {section:"Biology",q:"State the word equation for <strong>aerobic respiration</strong>.",type:"short",marks:2,answer:"glucose + oxygen → carbon dioxide + water (+ energy)",hint:"Reactants: glucose + oxygen. Products: carbon dioxide + water + energy",keywords:["glucose","oxygen","carbon dioxide","water"]},
+  {section:"Biology",q:"Explain how a <strong>root hair cell</strong> is adapted to absorb water efficiently.",type:"short",marks:3,answer:"Long extension increases surface area for absorption; thin membrane allows faster diffusion; no chloroplasts needed (no light underground)",hint:"Match each feature to a specific function",keywords:["surface area","osmosis","thin","absorption","extension"]},
+  {section:"Biology",q:"What is the correct order of the pathway water takes through a plant?",type:"mcq",marks:1,answer:"Soil → root hair → xylem → stomata",options:["Soil → root hair → xylem → stomata","Root → phloem → leaf → stomata","Soil → xylem → root hair → stomata","Stomata → xylem → root hair → soil"]},
+  {section:"Biology",q:"A plant is placed in higher humidity. What happens to the rate of transpiration and why?",type:"short",marks:3,answer:"Transpiration rate decreases because the concentration gradient between the leaf and the air is smaller/less steep. Water vapour diffuses out more slowly.",hint:"Think about the concentration gradient of water vapour between the leaf and the surrounding air",keywords:["decrease","gradient","humidity","slower","less"]},
+  {section:"Biology",q:"In a genetics cross, Tall (T) is dominant over short (t). Two heterozygous plants (Tt × Tt) are crossed. What is the expected ratio of tall to short plants?",type:"mcq",marks:2,answer:"3 : 1",options:["3 : 1","1 : 1","2 : 1","1 : 3"]},
+  {section:"Biology",q:"What is the difference between <strong>xylem</strong> and <strong>phloem</strong> vessels?",type:"short",marks:3,answer:"Xylem: dead cells, carry water and mineral salts upward only, lignified walls. Phloem: living cells, carry dissolved sugars (sucrose) in both directions (translocation).",hint:"Consider: dead/living, what they carry, direction of transport",keywords:["xylem","phloem","water","sugars","upward","both","living","dead"]},
+  {section:"Biology",q:"Why do antibiotics NOT work against the flu virus?",type:"mcq",marks:1,answer:"Antibiotics kill bacteria only, not viruses",options:["Antibiotics kill bacteria only, not viruses","The flu virus is too large","Antibiotics are not strong enough","Flu viruses destroy antibiotics"]},
+  {section:"Biology",q:"Describe the process of <strong>photosynthesis</strong>, including where it takes place and the reactants and products.",type:"short",marks:4,answer:"Photosynthesis takes place in the chloroplasts (using chlorophyll). Reactants: carbon dioxide + water. Products: glucose + oxygen. Requires light energy. CO₂ + H₂O → glucose + O₂",hint:"CO₂ + H₂O → glucose + O₂, in chloroplasts, requires light",keywords:["chloroplast","carbon dioxide","water","glucose","oxygen","light"]},
+  // Chemistry
+  {section:"Chemistry",q:"A student adds zinc to copper sulfate solution. What type of reaction is this?",type:"mcq",marks:1,answer:"Displacement reaction",options:["Displacement reaction","Neutralisation","Thermal decomposition","Precipitation"]},
+  {section:"Chemistry",q:"Name the gas produced when a dilute acid reacts with a metal, and describe the test for it.",type:"short",marks:2,answer:"Hydrogen gas. Hold a burning splint to the opening — a 'squeaky pop' confirms hydrogen.",hint:"Acid + metal → salt + hydrogen. Squeaky pop test.",keywords:["hydrogen","squeaky pop","burning splint"]},
+  {section:"Chemistry",q:"Explain, using collision theory, why increasing the <strong>temperature</strong> speeds up a chemical reaction.",type:"short",marks:3,answer:"At higher temperature, particles have more kinetic energy. They collide more frequently and with more energy. More collisions have enough energy to overcome the activation energy, so the rate increases.",hint:"Must mention: kinetic energy, more/more energetic collisions, activation energy",keywords:["kinetic energy","collisions","activation energy","temperature","faster","energy"]},
+  {section:"Chemistry",q:"What is the Rf value in chromatography?",type:"mcq",marks:1,answer:"Distance moved by spot ÷ distance moved by solvent",options:["Distance moved by spot ÷ distance moved by solvent","Distance moved by solvent ÷ distance moved by spot","Distance moved by spot × wavelength","Mass of substance ÷ volume of solvent"]},
+  {section:"Chemistry",q:"An atom has atomic number 11 and mass number 23. State the number of protons, neutrons and electrons.",type:"short",marks:3,answer:"Protons: 11, Neutrons: 12 (23−11), Electrons: 11",hint:"Atomic number = protons = electrons. Neutrons = mass − atomic number.",keywords:["11","12"]},
+  {section:"Chemistry",q:"Describe what happens to temperature during a change of state (e.g. melting), and explain why.",type:"short",marks:3,answer:"Temperature stays constant during a change of state. The energy is used to break/form the forces between particles rather than to increase the kinetic energy of particles.",hint:"Energy goes into breaking intermolecular forces, not into speeding up particles",keywords:["constant","does not change","forces","particles","break"]},
+  {section:"Chemistry",q:"Which statement about ionic compounds is correct?",type:"mcq",marks:1,answer:"They conduct electricity when dissolved in water or melted",options:["They conduct electricity when dissolved in water or melted","They conduct electricity as solids","They have low melting points","They are formed by sharing electrons"]},
+  {section:"Chemistry",q:"Complete combustion of methane produces which products?",type:"mcq",marks:1,answer:"Carbon dioxide and water",options:["Carbon dioxide and water","Carbon monoxide and water","Carbon and water","Carbon dioxide and hydrogen"]},
+  {section:"Chemistry",q:"Limewater is used to test for which gas, and what is the positive result?",type:"short",marks:2,answer:"Carbon dioxide (CO₂). The limewater turns milky/cloudy.",hint:"Bubble the gas through limewater — milky = CO₂",keywords:["carbon dioxide","CO₂","milky","cloudy","limewater"]},
+  // Physics
+  {section:"Physics",q:"A car travels 150 m in 12 seconds. Calculate its average speed in m/s.",type:"short",marks:2,answer:"12.5 m/s",hint:"Speed = distance ÷ time = 150 ÷ 12 = 12.5",keywords:["12.5"]},
+  {section:"Physics",q:"An object has mass 5 kg. Calculate its weight on Earth. (g = 10 N/kg)",type:"short",marks:2,answer:"50 N",hint:"W = mg = 5 × 10 = 50 N",keywords:["50"]},
+  {section:"Physics",q:"What is the difference between a <strong>transverse</strong> and a <strong>longitudinal</strong> wave? Give one example of each.",type:"short",marks:4,answer:"Transverse: oscillation is perpendicular to direction of energy transfer. Example: light/electromagnetic waves. Longitudinal: oscillation is parallel to direction of energy transfer. Example: sound waves.",hint:"Think about which direction particles vibrate relative to wave travel direction",keywords:["perpendicular","parallel","transverse","longitudinal","sound","light"]},
+  {section:"Physics",q:"Arrange the electromagnetic spectrum from longest to shortest wavelength.",type:"mcq",marks:2,answer:"Radio → microwave → infrared → visible → UV → X-ray → gamma",options:["Radio → microwave → infrared → visible → UV → X-ray → gamma","Gamma → X-ray → UV → visible → infrared → microwave → radio","Radio → infrared → microwave → visible → UV → X-ray → gamma","Gamma → UV → X-ray → visible → infrared → microwave → radio"]},
+  {section:"Physics",q:"Explain why a skydiver reaches <strong>terminal velocity</strong>.",type:"short",marks:3,answer:"As the skydiver falls, air resistance (drag) increases as speed increases. Terminal velocity is reached when air resistance equals the skydiver's weight. The resultant force is zero, so there is no more acceleration and speed is constant.",hint:"Terminal velocity: resultant force = 0, drag = weight",keywords:["air resistance","weight","resultant","zero","constant","equal"]},
+  {section:"Physics",q:"In a <strong>series circuit</strong>, what happens to the current as it flows through multiple components?",type:"mcq",marks:1,answer:"It stays the same throughout",options:["It stays the same throughout","It splits at each component","It decreases with each component","It increases with each component"]},
+  {section:"Physics",q:"Calculate the power of a device with voltage 230 V and current 2 A.",type:"short",marks:2,answer:"460 W",hint:"P = IV = 2 × 230 = 460 W",keywords:["460"]},
+  {section:"Physics",q:"Name the three methods of heat transfer and state which medium each requires.",type:"short",marks:3,answer:"Conduction (solids, mainly metals), Convection (liquids and gases), Radiation (any medium, including vacuum — no particles needed)",hint:"One is the only one that works in a vacuum",keywords:["conduction","convection","radiation","solid","liquid","vacuum"]},
+  // Earth & Space
+  {section:"Earth & Space",q:"What causes the seasons on Earth?",type:"mcq",marks:1,answer:"The tilt of Earth's axis as it orbits the Sun",options:["The tilt of Earth's axis as it orbits the Sun","Earth being closer to the Sun in summer","The Moon's gravitational pull","Changes in the Sun's energy output"]},
+  {section:"Earth & Space",q:"Explain how <strong>tectonic plates</strong> move.",type:"short",marks:3,answer:"Tectonic plates move because of convection currents in the mantle. Heat from radioactive decay in the core causes hot mantle material to rise, spread out, cool and sink, dragging the plates along with it.",hint:"Convection currents in the mantle are driven by heat from the core",keywords:["convection","mantle","plates","heat","core","rising","sinking"]},
+  {section:"Earth & Space",q:"Which rock type is the ONLY one that can contain fossils?",type:"mcq",marks:1,answer:"Sedimentary rock",options:["Sedimentary rock","Igneous rock","Metamorphic rock","All rock types"]},
+  {section:"Earth & Space",q:"What is the approximate composition of the Earth's atmosphere?",type:"mcq",marks:2,answer:"78% nitrogen, 21% oxygen, ~1% argon, ~0.04% CO₂",options:["78% nitrogen, 21% oxygen, ~1% argon, ~0.04% CO₂","78% oxygen, 21% nitrogen, 1% CO₂","50% nitrogen, 50% oxygen","21% nitrogen, 78% oxygen, 1% CO₂"]},
+  {section:"Earth & Space",q:"Explain the <strong>enhanced greenhouse effect</strong> and its impact on Earth.",type:"short",marks:4,answer:"Human activities (burning fossil fuels, deforestation) increase CO₂ and methane in the atmosphere. These greenhouse gases absorb infrared radiation emitted from Earth's surface and re-emit it back. More heat is trapped, causing global temperatures to rise (global warming), leading to melting ice caps, sea level rise and more extreme weather.",hint:"Link: human activities → increased greenhouse gases → more infrared absorbed → more heat trapped → global warming effects",keywords:["CO₂","greenhouse","infrared","temperature","fossil fuels","global warming","heat"]},
+  {section:"Earth & Space",q:"What evidence supports the Big Bang theory?",type:"short",marks:2,answer:"Red shift of distant galaxies (galaxies moving away; further = greater red shift). Cosmic microwave background radiation. Universe is expanding.",hint:"Two pieces of evidence: red shift and cosmic microwave background radiation",keywords:["red shift","expanding","cosmic","microwave","background","galaxies"]},
+];
+
+// ===================== QUIZ STATE =====================
+let selectedSubjects = [];
+let questions = [];
+let answers = {};
+let scores = {};
+let aiChecked = {};
+let totalPossible = 0;
+
+function toggleSubject(s) {
+  const card = document.getElementById('card-'+s);
+  if (selectedSubjects.includes(s)) {
+    selectedSubjects = selectedSubjects.filter(x=>x!==s);
+    card.classList.remove('active');
+  } else {
+    selectedSubjects.push(s);
+    card.classList.add('active');
+  }
+  const btn = document.getElementById('startBtn');
+  if (selectedSubjects.length > 0) {
+    btn.disabled = false;
+    btn.textContent = selectedSubjects.length === 2 ? 'Start Combined Paper →' : `Start ${selectedSubjects[0]==='math'?'Maths':'Science'} Paper →`;
+  } else {
+    btn.disabled = true;
+    btn.textContent = 'Select a subject to begin';
+  }
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i=a.length-1;i>0;i--) {
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function startExam() {
+  let pool = [];
+  if (selectedSubjects.includes('math')) pool.push(...MATH_QUESTIONS);
+  if (selectedSubjects.includes('science')) pool.push(...SCIENCE_QUESTIONS);
+
+  // Group by section and pick ~3-4 questions per section
+  const sections = {};
+  pool.forEach(q => {
+    if (!sections[q.section]) sections[q.section] = [];
+    sections[q.section].push(q);
+  });
+
+  questions = [];
+  Object.entries(sections).forEach(([sec, qs]) => {
+    const shuffled = shuffle(qs);
+    questions.push(...shuffled.slice(0, Math.min(4, shuffled.length)));
+  });
+  questions = shuffle(questions);
+
+  totalPossible = questions.reduce((s,q)=>s+q.marks,0);
+  answers = {};
+  scores = {};
+  aiChecked = {};
+
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('exam').style.display = 'block';
+
+  const subjectName = selectedSubjects.length===2 ? 'Combined Maths & Science' :
+    selectedSubjects[0]==='math' ? 'Mathematics 0862' : 'Science 0893';
+  document.getElementById('examTitle').textContent = `Cambridge Checkpoint — ${subjectName}`;
+  document.getElementById('qCount').textContent = questions.length;
+  document.getElementById('totalMarks').textContent = totalPossible;
+
+  renderQuestions();
+}
+
+function renderQuestions() {
+  const container = document.getElementById('questionsContainer');
+  container.innerHTML = '';
+  let currentSection = null;
+  let globalN = 0;
+
+  questions.forEach((q, i) => {
+    globalN++;
+    if (q.section !== currentSection) {
+      currentSection = q.section;
+      const sh = document.createElement('div');
+      sh.className = 'section-header';
+      sh.innerHTML = `📌 ${q.section}`;
+      container.appendChild(sh);
+    }
+
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = `qcard-${i}`;
+
+    let inputHTML = '';
+    if (q.type === 'mcq') {
+      const opts = shuffle(q.options || []);
+      inputHTML = `<div class="options" id="opts-${i}">` +
+        opts.map((o,j)=>`<button class="option-btn" id="opt-${i}-${j}" onclick="selectOption(${i},${j},'${escJ(o)}')" data-val="${escJ(o)}"><span class="option-letter">${'ABCD'[j]}</span>${o}</button>`).join('') +
+        '</div>';
+    } else {
+      inputHTML = `<textarea class="answer-input" id="ans-${i}" placeholder="Write your answer here…" rows="3" oninput="onTextInput(${i})"></textarea>
+      <br><button class="check-btn" id="checkbtn-${i}" onclick="checkAnswer(${i})" disabled>Check answer 🤖</button>`;
+    }
+
+    card.innerHTML = `
+      <div class="q-header">
+        <div class="q-num">Question ${globalN}</div>
+        <span class="marks-badge">${q.marks} mark${q.marks>1?'s':''}</span>
+      </div>
+      <div class="q-text">${q.q}</div>
+      ${inputHTML}
+      <div class="feedback" id="fb-${i}"></div>
+    `;
+    container.appendChild(card);
+  });
+
+  updateProgress();
+}
+
+function escJ(s) { return s.replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+function onTextInput(i) {
+  const val = document.getElementById(`ans-${i}`).value.trim();
+  document.getElementById(`checkbtn-${i}`).disabled = val.length < 2;
+  answers[i] = val;
+  updateProgress();
+}
+
+function selectOption(i, j, val) {
+  if (aiChecked[i]) return;
+  answers[i] = val;
+  const opts = document.querySelectorAll(`#opts-${i} .option-btn`);
+  opts.forEach(o => o.classList.remove('selected'));
+  document.getElementById(`opt-${i}-${j}`).classList.add('selected');
+  document.getElementById(`qcard-${i}`).classList.add('answered');
+  updateProgress();
+
+  // Auto-check MCQ
+  const q = questions[i];
+  const correct = val === q.answer;
+  const earnedMarks = correct ? q.marks : 0;
+  scores[i] = earnedMarks;
+  aiChecked[i] = true;
+
+  opts.forEach(o => {
+    o.disabled = true;
+    if (o.dataset.val === q.answer) o.classList.add('correct');
+  });
+  if (!correct) document.getElementById(`opt-${i}-${j}`).classList.add('wrong');
+
+  showFeedback(i, correct ? 'perfect' : 'wrong', earnedMarks, q.marks, q.hint||'');
+  updateProgress();
+}
+
+async function checkAnswer(i) {
+  if (aiChecked[i]) return;
+  const q = questions[i];
+  const userAns = (document.getElementById(`ans-${i}`)?.value||'').trim();
+  if (!userAns) return;
+
+  aiChecked[i] = true;
+  answers[i] = userAns;
+  document.getElementById(`qcard-${i}`).classList.add('answered');
+  document.getElementById(`checkbtn-${i}`).disabled = true;
+  document.getElementById(`ans-${i}`).disabled = true;
+
+  const fb = document.getElementById(`fb-${i}`);
+  fb.className = 'feedback show';
+  fb.innerHTML = `<div class="ai-thinking">🤖 Marking your answer… <span class="dots"><span></span><span></span><span></span></span></div>`;
+
+  try {
+    const prompt = `You are a Cambridge Checkpoint examiner marking a student's answer. 
+Question: ${q.q.replace(/<[^>]+>/g,'')}
+Model answer / marking scheme: ${q.answer}
+Keywords that should appear for full marks: ${(q.keywords||[]).join(', ')}
+Total marks for this question: ${q.marks}
+
+Student's answer: "${userAns}"
+
+Award marks generously but fairly. A student who shows understanding deserves marks even if wording isn't perfect. Partial marks are fine.
+
+Reply ONLY with valid JSON like this:
+{"marks": <number 0 to ${q.marks}>, "verdict": "<perfect|partial|wrong>", "feedback": "<2-3 sentences: what they got right, what's missing, exam tip>"}`;
+
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:300,
+        messages:[{role:"user",content:prompt}]
+      })
+    });
+    const data = await resp.json();
+    const raw = data.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
+    const result = JSON.parse(raw);
+    scores[i] = Math.max(0, Math.min(result.marks, q.marks));
+    showFeedback(i, result.verdict, scores[i], q.marks, result.feedback);
+  } catch(e) {
+    // Fallback keyword matching
+    const lcUser = userAns.toLowerCase();
+    const kws = q.keywords || [];
+    const hits = kws.filter(k => lcUser.includes(k.toLowerCase()));
+    const frac = kws.length > 0 ? hits.length / kws.length : 0;
+    const earnedMarks = Math.round(frac * q.marks);
+    scores[i] = earnedMarks;
+    const verdict = earnedMarks === q.marks ? 'perfect' : earnedMarks > 0 ? 'partial' : 'wrong';
+    showFeedback(i, verdict, earnedMarks, q.marks, `Model answer: ${q.answer}`);
+  }
+  updateProgress();
+}
+
+function showFeedback(i, verdict, earned, total, msg) {
+  const fb = document.getElementById(`fb-${i}`);
+  const icons = {perfect:'✅',partial:'🟡',wrong:'❌'};
+  const labels = {perfect:'Correct!',partial:'Partially correct',wrong:'Incorrect'};
+  const cls = {perfect:'perfect-fb',partial:'wrong-fb',wrong:'wrong-fb'};
+  fb.className = `feedback show ${cls[verdict]||'wrong-fb'}`;
+  fb.innerHTML = `<div class="fb-score">${icons[verdict]||'❌'} ${labels[verdict]||'Check your answer'} — <span class="score-chip">${earned} / ${total} marks</span></div><div class="fb-explanation">${msg}</div>`;
+}
+
+function updateProgress() {
+  const answered = Object.keys(aiChecked).length;
+  const pct = questions.length ? (answered / questions.length) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('submitInfo').textContent = `${answered} of ${questions.length} questions checked`;
+}
+
+function submitExam() {
+  // Calculate totals
+  let earned = 0;
+  questions.forEach((q,i) => { earned += (scores[i] || 0); });
+
+  document.getElementById('exam').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+
+  const pct = Math.round((earned / totalPossible) * 100);
+  const grade = pct>=85?'Outstanding':pct>=70?'Exceeding':pct>=55?'Expected':pct>=40?'Approaching':'Needs Work';
+  const gradeEmoji = pct>=85?'🏆':pct>=70?'⭐':pct>=55?'👍':pct>=40?'📚':'💪';
+
+  const subjectName = selectedSubjects.length===2 ? 'Combined Paper' :
+    selectedSubjects[0]==='math' ? 'Mathematics' : 'Science';
+  document.getElementById('resultsTitle').textContent = `${subjectName} paper complete! ${gradeEmoji}`;
+  document.getElementById('gradeDisplay').textContent = grade;
+  document.getElementById('gradeLabel').textContent = `${pct}% — Cambridge Checkpoint Grade`;
+  document.getElementById('r-score').textContent = earned;
+  document.getElementById('r-total').textContent = totalPossible;
+  document.getElementById('r-pct').textContent = pct + '%';
+  const fullMarks = questions.filter((q,i)=>(scores[i]||0)===q.marks).length;
+  document.getElementById('r-correct').textContent = fullMarks + '/' + questions.length;
+
+  // Breakdown
+  const sections = {};
+  questions.forEach((q,i)=>{
+    if(!sections[q.section]) sections[q.section]=[];
+    sections[q.section].push({q,i});
+  });
+
+  const bc = document.getElementById('breakdownContainer');
+  bc.innerHTML = '';
+  Object.entries(sections).forEach(([sec, items]) => {
+    const div = document.createElement('div');
+    div.className = 'breakdown-section';
+    const secEarned = items.reduce((s,{q,i})=>s+(scores[i]||0),0);
+    const secTotal = items.reduce((s,{q})=>s+q.marks,0);
+    div.innerHTML = `<h4>${sec} — ${secEarned}/${secTotal} marks</h4>` +
+      items.map(({q,i},n) => {
+        const e = scores[i]||0;
+        const dotCls = e===q.marks?'full':e>0?'partial':'zero';
+        const ptsCls = e===q.marks?'full':e>0?'partial':'zero';
+        const qtext = q.q.replace(/<[^>]+>/g,'').slice(0,70)+(q.q.length>70?'…':'');
+        return `<div class="breakdown-q"><div class="bq-dot ${dotCls}"></div><div class="bq-text">Q${n+1}: ${qtext}</div><div class="bq-pts ${ptsCls}">${e}/${q.marks}</div></div>`;
+      }).join('');
+    bc.appendChild(div);
+  });
+
+  window.scrollTo(0,0);
+}
+
+function restartQuiz() {
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('welcome').style.display = 'flex';
+  selectedSubjects = [];
+  document.getElementById('card-math').classList.remove('active');
+  document.getElementById('card-science').classList.remove('active');
+  const btn = document.getElementById('startBtn');
+  btn.disabled = true;
+  btn.textContent = 'Select a subject to begin';
+}
+</script>
+</body>
+</html>
